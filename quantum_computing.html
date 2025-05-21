@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploring Large-Scale Quantum Computing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Simple fade-in animation */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        /* Qubit sphere animation */
+        .qubit-sphere {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #a7f3d0, #059669); /* Emerald gradient */
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .qubit-sphere:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4); /* Emerald shadow */
+        }
+        .qubit-superposition::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 70% 70%, #bae6fd, #0ea5e9); /* Sky gradient */
+            opacity: 0.6;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        .qubit-measured-0 { background: radial-gradient(circle at 30% 30%, #e0f2fe, #0ea5e9); } /* Sky Blue for 0 */
+        .qubit-measured-1 { background: radial-gradient(circle at 30% 30%, #fecaca, #ef4444); } /* Red for 1 */
+
+        /* Entanglement link */
+        .entanglement-link {
+            position: absolute;
+            height: 2px;
+            background-color: #60a5fa; /* Blue */
+            transform-origin: left center;
+            z-index: -1;
+            transition: background-color 0.3s ease;
+        }
+        .entangled .entanglement-link {
+             background-color: #f472b6; /* Pink when measured */
+        }
+
+        /* Noisy qubit animation */
+        .noisy-qubit {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #f87171; /* Red */
+            display: inline-block;
+            margin: 2px;
+            animation: flicker 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.3; transform: scale(0.9); }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.5; transform: scale(1); }
+        }
+        /* Logical qubit */
+        .logical-qubit {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #34d399; /* Emerald */
+            display: inline-block;
+            margin: 5px;
+            box-shadow: 0 0 8px rgba(52, 211, 153, 0.7);
+            transition: transform 0.3s ease;
+        }
+
+        /* Progress bar animation */
+        .progress-bar-inner {
+            height: 100%;
+            border-radius: 0.375rem; /* rounded-md */
+            transition: width 2s ease-out; /* Slower transition for classical */
+            text-align: center;
+            color: white;
+            font-weight: 500;
+        }
+        .progress-bar-quantum .progress-bar-inner {
+             transition: width 0.5s ease-out; /* Faster transition for quantum */
+        }
+
+        /* Tooltip styling */
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted #60a5fa; /* Blue dotted underline */
+        }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-5px);
+            background-color: #1f2937; /* Gray 800 */
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 10;
+        }
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Application icon animation */
+        .app-icon {
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+        .app-icon:hover {
+            transform: scale(1.1);
+            filter: brightness(1.1);
+        }
+        .app-description {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            opacity: 0;
+        }
+        .app-description.visible {
+            max-height: 300px; /* Adjust as needed */
+            opacity: 1;
+        }
+
+        /* Active nav link style */
+        .nav-link.active {
+           font-weight: 700;
+           color: #10b981; /* Emerald 500 */
+           border-left-color: #10b981; /* Emerald 500 */
+        }
+
+        /* Simple illustrative graphics */
+        .molecule-svg { /* Example */
+            width: 80px; height: 80px;
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .optimization-graph { /* Example */
+             width: 100px; height: 60px;
+             stroke: #3b82f6; /* Blue 500 */
+             stroke-width: 2;
+             fill: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <nav class="w-full md:w-64 bg-white shadow-md p-4 md:sticky md:top-0 md:h-screen">
+            <h2 class="text-xl font-bold text-emerald-600 mb-6 border-b pb-2">Quantum Explorer</h2>
+            <ul class="space-y-3">
+                <li><a href="#intro" class="nav-link block p-2 rounded hover:bg-emerald-50 border-l-4 border-transparent transition-colors duration-200" data-section="intro">Introduction</a></li>
+                <li><a href="#advantage" class="nav-link block p-2 rounded hover:bg-emerald-50 border-l-4 border-transparent transition-colors duration-200" data-section="advantage">Quantum Advantage</a></li>
+                <li><a href="#qubits" class="nav-link block p-2 rounded hover:bg-emerald-50 border-l-4 border-transparent transition-colors duration-200" data-section="qubits">Qubits & Effects</a></li>
+                <li><a href="#scale" class="nav-link block p-2 rounded hover:bg-emerald-50 border-l-4 border-transparent transition-colors duration-200" data-section="scale">Scale & Errors</a></li>
+                <li><a href="#apps" class="nav-link block p-2 rounded hover:bg-emerald-50 border-l-4 border-transparent transition-colors duration-200" data-section="apps">Potential Applications</a></li>
+                <li><a href="#outlook" class="nav-link block p-2 rounded hover:bg-emerald-50 border-l-4 border-transparent transition-colors duration-200" data-section="outlook">Status & Outlook</a></li>
+            </ul>
+            <p class="text-xs text-gray-400 mt-8">Simulation (Conceptual)</p>
+            <p class="text-xs text-gray-400">Mid-2025 Perspective</p>
+        </nav>
+
+        <main class="flex-1 p-6 md:p-10 space-y-12">
+
+            <section id="intro" class="fade-in space-y-4 bg-white p-6 rounded-lg shadow">
+                <h1 class="text-3xl font-bold text-emerald-700">Welcome to the Quantum Computing Explainer</h1>
+                <p class="text-lg">Quantum computing aims to harness the principles of <strong data-tooltip="The physics governing the very small (atoms, electrons)">quantum mechanics</strong> to perform calculations.</p>
+                <p><strong>The Goal:</strong> To solve certain complex problems that are currently intractable for even the most powerful classical supercomputers.</p>
+                <p><strong>The Challenge:</strong> Building and controlling large-scale, stable quantum computers is incredibly difficult due to the fragile nature of quantum states and the need for robust <strong data-tooltip="Techniques to protect quantum information from noise">error correction</strong>.</p>
+                <p class="italic text-gray-600">This simulation provides a conceptual overview (as of mid-2025) of this future technology frontier. It uses analogies and simplified visuals, not precise physics.</p>
+            </section>
+
+            <section id="advantage" class="fade-in space-y-4 bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold text-emerald-700">Classical vs. Quantum Advantage (Conceptual)</h2>
+                <p>For specific types of problems, quantum computers might offer an exponential speedup.</p>
+                <p>Imagine simulating a complex molecule to discover new medicines. A classical computer checks possibilities one by one (or in limited parallel), while a quantum computer could conceptually explore many possibilities simultaneously using quantum effects.</p>
+                <div class="mt-6 space-y-6">
+                    <div>
+                        <h3 class="font-semibold mb-2">Classical Approach (Simulated)</h3>
+                        <div class="w-full bg-gray-200 rounded-md h-6 overflow-hidden">
+                            <div id="classical-progress" class="progress-bar-inner bg-blue-500 h-full" style="width: 0%;">0%</div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">Checking possibilities sequentially...</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Quantum Approach (Conceptual Analogy)</h3>
+                        <div class="w-full bg-gray-200 rounded-md h-6 overflow-hidden progress-bar-quantum">
+                            <div id="quantum-progress" class="progress-bar-inner bg-emerald-500 h-full" style="width: 0%;">0%</div>
+                        </div>
+                         <p class="text-sm text-gray-600 mt-1">Exploring possibilities in parallel...</p>
+                    </div>
+                </div>
+                <button id="start-comparison-btn" class="mt-6 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition duration-200">Start Simulation Comparison</button>
+                <p class="italic text-gray-600 mt-4">Note: This is a simplified visual analogy of potential speedup for specific algorithms, not a real-time calculation.</p>
+            </section>
+
+            <section id="qubits" class="fade-in space-y-6 bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold text-emerald-700">The Qubit: Building Block of Quantum Computing</h2>
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <h3 class="font-semibold mb-2">Classical Bit vs. Quantum Bit (Qubit)</h3>
+                        <p>A classical bit is either 0 or 1.</p>
+                        <div class="my-3 flex items-center space-x-4">
+                            <span class="font-mono text-2xl p-3 border rounded bg-gray-100">0</span>
+                            <span class="font-mono text-2xl p-3 border rounded bg-gray-100">1</span>
+                        </div>
+                        <p>A <strong data-tooltip="Quantum Bit">qubit</strong> can be 0, 1, or a combination of both simultaneously until measured. This property is called <strong data-tooltip="A quantum state that is a combination of multiple basis states (like 0 and 1)">superposition</strong>.</p>
+                        <div id="qubit-analogy" class="my-4 text-center">
+                            <div id="superposition-qubit" class="qubit-sphere qubit-superposition" title="Click to 'measure'"></div>
+                            <p class="text-sm text-gray-600">Qubit in superposition (Click Me)</p>
+                            <p id="measurement-result" class="mt-2 font-semibold h-6"></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Entanglement: Spooky Connection</h3>
+                        <p><strong data-tooltip="A quantum phenomenon where qubits become linked and share the same fate, regardless of distance">Entanglement</strong> links two or more qubits. Measuring one instantly influences the state of the others, no matter how far apart.</p>
+                        <div id="entanglement-analogy" class="my-4 relative h-24 flex justify-center items-center space-x-16">
+                            <div id="qubit-a" class="qubit-sphere qubit-superposition" title="Click to 'measure' entangled pair">A</div>
+                            <div id="qubit-b" class="qubit-sphere qubit-superposition" title="Click to 'measure' entangled pair">B</div>
+                            <div id="entanglement-line" class="entanglement-link"></div>
+                             <p id="entanglement-result" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 mt-2 font-semibold h-6"></p>
+                        </div>
+                        <p class="text-sm text-gray-600 text-center">Click either qubit</p>
+                    </div>
+                </div>
+                <p class="mt-4">Superposition and entanglement are key resources that conceptually allow quantum computers to explore vast computational spaces efficiently for certain problems.</p>
+            </section>
+
+            <section id="scale" class="fade-in space-y-4 bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold text-emerald-700">The Challenge: Scale and Errors</h2>
+                <p>Individual qubits are extremely sensitive to environmental <strong data-tooltip="External disturbances like heat or radiation that disrupt quantum states">noise</strong>, causing errors in computation.</p>
+                <div class="my-4 p-4 border rounded-md bg-red-50">
+                    <h3 class="font-semibold mb-2 text-red-700">Noisy Physical Qubits:</h3>
+                    <div id="noisy-qubits-container" class="flex flex-wrap">
+                        </div>
+                    <p class="text-sm text-red-600 mt-2">These qubits are unstable and prone to errors.</p>
+                </div>
+                <p>To perform reliable calculations, we need <strong data-tooltip="Techniques using multiple physical qubits to encode one robust, error-protected qubit">quantum error correction</strong>. This involves grouping many noisy physical qubits together to create a single, more stable <strong data-tooltip="A robust qubit created using error correction codes on multiple physical qubits">logical qubit</strong>.</p>
+                 <div class="my-4 p-4 border rounded-md bg-emerald-50">
+                     <h3 class="font-semibold mb-2 text-emerald-700">Forming Logical Qubits (Conceptual):</h3>
+                     <label for="physical-qubit-slider" class="block mb-2 text-sm font-medium text-gray-900">Adjust number of Physical Qubits (Conceptual): <span id="physical-qubit-count" class="font-bold">100</span></label>
+                    <input id="physical-qubit-slider" type="range" min="10" max="500" value="100" step="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+
+                    <div class="mt-4">
+                        <p class="mb-2">Resulting Logical Qubits:</p>
+                        <div id="logical-qubits-container" class="flex flex-wrap items-center">
+                            </div>
+                        <p id="logical-qubit-info" class="text-sm text-emerald-600 mt-2"></p>
+                    </div>
+                     <p class="text-xs italic text-gray-500 mt-3">This is a highly simplified illustration. Real error correction codes are complex and the ratio of physical to logical qubits can be very large (thousands to one or more).</p>
+                </div>
+                <p class="font-semibold">Useful quantum computation will likely require thousands or even millions of high-quality logical qubits, demanding potentially billions of physical qubits – a monumental engineering challenge!</p>
+            </section>
+
+            <section id="apps" class="fade-in space-y-4 bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold text-emerald-700">Potential Future Applications</h2>
+                <p>If large-scale, error-corrected quantum computers become a reality, they could revolutionize various fields:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    <div class="app-item text-center p-4 border rounded-lg hover:shadow-lg transition-shadow cursor-pointer" data-app="materials">
+                        <svg class="app-icon w-16 h-16 mx-auto text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M12 4v1.5M12 18.5v1.5m4-11l1.5-1.5M4 11l-1.5 1.5M18.5 12l1.5 1.5M5.5 12l-1.5 1.5M12 5.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zM12 13.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"></path></svg>
+                        <h3 class="font-semibold">Materials Science</h3>
+                        <div class="app-description text-sm text-gray-600 mt-2 text-left">
+                            Simulating molecular interactions to design novel materials with desired properties (e.g., better catalysts for green energy, superconductors).
+                            <svg class="molecule-svg mx-auto mt-2" viewBox="-10 -10 120 120" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="50" cy="50" r="40" stroke="#3b82f6" stroke-width="3" fill="none"/>
+                              <circle cx="50" cy="10" r="8" fill="#ef4444"/>
+                              <circle cx="90" cy="50" r="8" fill="#22c55e"/>
+                              <circle cx="50" cy="90" r="8" fill="#22c55e"/>
+                              <circle cx="10" cy="50" r="8" fill="#ef4444"/>
+                              <line x1="50" y1="50" x2="50" y2="10" stroke="#6b7280" stroke-width="2"/>
+                              <line x1="50" y1="50" x2="90" y2="50" stroke="#6b7280" stroke-width="2"/>
+                               <line x1="50" y1="50" x2="50" y2="90" stroke="#6b7280" stroke-width="2"/>
+                               <line x1="50" y1="50" x2="10" y2="50" stroke="#6b7280" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="app-item text-center p-4 border rounded-lg hover:shadow-lg transition-shadow cursor-pointer" data-app="pharma">
+                        <svg class="app-icon w-16 h-16 mx-auto text-pink-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a4 4 0 00-5.656 0M11.586 8.586a4 4 0 105.656 5.656M8.586 11.586a4 4 0 105.656 5.656M15.428 19.428a4 4 0 005.657-5.657M4.571 8.571a4 4 0 005.657 0M12.414 15.414a4 4 0 10-5.656-5.656M15.414 12.414a4 4 0 10-5.656-5.656M8.571 4.571a4 4 0 00-5.657 5.657"></path></svg>
+                        <h3 class="font-semibold">Drug Discovery</h3>
+                         <div class="app-description text-sm text-gray-600 mt-2 text-left">
+                            Accurately modeling complex biological molecules to accelerate the design and testing of new pharmaceuticals, potentially relevant for India's strong pharmaceutical sector.
+                        </div>
+                    </div>
+                    <div class="app-item text-center p-4 border rounded-lg hover:shadow-lg transition-shadow cursor-pointer" data-app="ai">
+                        <svg class="app-icon w-16 h-16 mx-auto text-purple-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3m0-12a9 9 0 110 18 9 9 0 010-18zm-3 9a3 3 0 116 0 3 3 0 01-6 0z"></path></svg>
+                        <h3 class="font-semibold">AI & Optimization</h3>
+                         <div class="app-description text-sm text-gray-600 mt-2 text-left">
+                            Potentially enhancing machine learning algorithms and solving complex optimization problems (e.g., logistics, finance, supply chains - areas of interest for India's growing economy).
+                             <svg class="optimization-graph mx-auto mt-2" viewBox="0 0 100 60">
+                                <polyline points="0,50 10,40 20,45 30,30 40,35 50,20 60,25 70,10 80,15 90,5 100,10" />
+                            </svg>
+                        </div>
+                    </div>
+                     <div class="app-item text-center p-4 border rounded-lg hover:shadow-lg transition-shadow cursor-pointer" data-app="crypto">
+                       <svg class="app-icon w-16 h-16 mx-auto text-yellow-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <h3 class="font-semibold">Cryptography</h3>
+                        <div class="app-description text-sm text-gray-600 mt-2 text-left">
+                            Future large quantum computers could break current encryption standards (like RSA). Research is active in developing <strong data-tooltip="Encryption methods believed to be secure against attacks by both classical and quantum computers">quantum-resistant cryptography</strong>.
+                        </div>
+                    </div>
+                </div>
+                 <p class="italic text-gray-600 mt-4">These applications depend heavily on achieving large-scale, fault-tolerant quantum computation, which is still a long-term research goal.</p>
+            </section>
+
+             <section id="outlook" class="fade-in space-y-4 bg-white p-6 rounded-lg shadow">
+                <h2 class="text-2xl font-bold text-emerald-700">Current Status & Outlook (Mid-2025)</h2>
+                <p>Quantum computing is primarily in the <strong data-tooltip="Noisy Intermediate-Scale Quantum: Current era with dozens to hundreds of noisy qubits, not yet error-corrected">research and development phase</strong>. Current devices have a limited number of noisy qubits and cannot yet solve large, practical problems beyond classical reach.</p>
+                <p><strong>Key Challenges Remaining:</strong></p>
+                <ul class="list-disc list-inside ml-4 space-y-1 text-gray-700">
+                    <li>Scaling up the number of high-quality qubits.</li>
+                    <li>Improving qubit coherence times (how long they maintain quantum states).</li>
+                    <li>Developing and implementing efficient, large-scale error correction.</li>
+                    <li>Creating effective quantum algorithms and software tools.</li>
+                </ul>
+                <p>There is a significant <strong data-tooltip="Governments, academia, and industry worldwide are investing heavily">global scientific and engineering effort</strong> underway, including national initiatives like India's National Quantum Mission, aiming to accelerate progress in this field.</p>
+                <p class="mt-4 font-semibold">Reflection Prompt:</p>
+                <p class="italic text-gray-600">While the timeline is uncertain, consider the potential long-term societal and economic transformations if these challenges are overcome. What ethical considerations might arise?</p>
+                <p class="mt-4 text-lg">The journey towards fault-tolerant quantum computing is a marathon, not a sprint, requiring sustained innovation and collaboration.</p>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Navigation ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+
+            // Function to update active nav link
+            const updateActiveNav = () => {
+                let currentSection = 'intro';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100; // Adjust offset as needed
+                    if (window.scrollY >= sectionTop) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('data-section') === currentSection) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            // Smooth scrolling for nav links
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    // Update active link immediately on click for better UX
+                     navLinks.forEach(l => l.classList.remove('active'));
+                     link.classList.add('active');
+                });
+            });
+
+            // Update active nav on scroll
+            window.addEventListener('scroll', updateActiveNav);
+            updateActiveNav(); // Initial call
+
+            // --- Quantum Advantage Simulation ---
+            const startComparisonBtn = document.getElementById('start-comparison-btn');
+            const classicalProgress = document.getElementById('classical-progress');
+            const quantumProgress = document.getElementById('quantum-progress');
+
+            startComparisonBtn.addEventListener('click', () => {
+                // Reset progress bars
+                classicalProgress.style.width = '0%';
+                classicalProgress.textContent = '0%';
+                quantumProgress.style.width = '0%';
+                 quantumProgress.textContent = '0%';
+
+                // Animate classical progress (slower)
+                setTimeout(() => {
+                    classicalProgress.style.width = '100%';
+                    classicalProgress.textContent = '100%';
+                }, 100); // Small delay to ensure transition occurs
+
+                // Animate quantum progress (faster)
+                 setTimeout(() => {
+                    quantumProgress.style.width = '100%';
+                    quantumProgress.textContent = '100%';
+                }, 100); // Small delay
+            });
+
+            // --- Qubit & Effects ---
+            const superpositionQubit = document.getElementById('superposition-qubit');
+            const measurementResult = document.getElementById('measurement-result');
+            const qubitA = document.getElementById('qubit-a');
+            const qubitB = document.getElementById('qubit-b');
+            const entanglementResult = document.getElementById('entanglement-result');
+            const entanglementAnalogy = document.getElementById('entanglement-analogy');
+            const entanglementLine = document.getElementById('entanglement-line');
+
+            // Function to measure a single qubit
+            const measureQubit = (qubitElement, resultElement) => {
+                const isSuperposition = qubitElement.classList.contains('qubit-superposition');
+                if (!isSuperposition) return; // Already measured
+
+                qubitElement.classList.remove('qubit-superposition');
+                const outcome = Math.random() < 0.5 ? 0 : 1;
+                if (outcome === 0) {
+                    qubitElement.classList.add('qubit-measured-0');
+                    if (resultElement) resultElement.textContent = "Measured: State 0";
+                } else {
+                    qubitElement.classList.add('qubit-measured-1');
+                     if (resultElement) resultElement.textContent = "Measured: State 1";
+                }
+                return outcome;
+            };
+
+            // Function to reset a single qubit
+             const resetQubit = (qubitElement, resultElement) => {
+                qubitElement.classList.remove('qubit-measured-0', 'qubit-measured-1');
+                qubitElement.classList.add('qubit-superposition');
+                 if (resultElement) resultElement.textContent = "";
+            };
+
+            // Superposition interaction
+            superpositionQubit.addEventListener('click', () => {
+                 if (superpositionQubit.classList.contains('qubit-superposition')) {
+                    measureQubit(superpositionQubit, measurementResult);
+                } else {
+                    resetQubit(superpositionQubit, measurementResult);
+                }
+            });
+
+            // Entanglement interaction
+            const measureEntangledPair = (clickedQubit) => {
+                const isSuperpositionA = qubitA.classList.contains('qubit-superposition');
+                 const isSuperpositionB = qubitB.classList.contains('qubit-superposition');
+
+                if (!isSuperpositionA || !isSuperpositionB) { // If already measured, reset
+                    resetQubit(qubitA);
+                    resetQubit(qubitB);
+                    entanglementResult.textContent = "";
+                    entanglementAnalogy.classList.remove('entangled');
+                    return;
+                }
+
+                const outcome = Math.random() < 0.5 ? 0 : 1; // Determine outcome for the pair
+                entanglementAnalogy.classList.add('entangled');
+
+                // Measure Qubit A
+                qubitA.classList.remove('qubit-superposition');
+                qubitA.classList.add(outcome === 0 ? 'qubit-measured-0' : 'qubit-measured-1');
+
+                // Measure Qubit B (instantly correlated)
+                qubitB.classList.remove('qubit-superposition');
+                qubitB.classList.add(outcome === 0 ? 'qubit-measured-0' : 'qubit-measured-1'); // Same outcome
+
+                entanglementResult.textContent = `Measured: Both State ${outcome}`;
+            };
+
+            qubitA.addEventListener('click', () => measureEntangledPair(qubitA));
+            qubitB.addEventListener('click', () => measureEntangledPair(qubitB));
+
+            // Draw entanglement line
+            const drawEntanglementLine = () => {
+                const rectA = qubitA.getBoundingClientRect();
+                const rectB = qubitB.getBoundingClientRect();
+                const containerRect = entanglementAnalogy.getBoundingClientRect();
+
+                // Calculate center points relative to the container
+                const x1 = rectA.left + rectA.width / 2 - containerRect.left;
+                const y1 = rectA.top + rectA.height / 2 - containerRect.top;
+                const x2 = rectB.left + rectB.width / 2 - containerRect.left;
+                const y2 = rectB.top + rectB.height / 2 - containerRect.top;
+
+                const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+
+                entanglementLine.style.width = `${length}px`;
+                entanglementLine.style.left = `${x1}px`;
+                entanglementLine.style.top = `${y1}px`;
+                entanglementLine.style.transform = `rotate(${angle}deg)`;
+            };
+            drawEntanglementLine(); // Initial draw
+            window.addEventListener('resize', drawEntanglementLine); // Redraw on resize
+
+
+            // --- Scale & Error Correction ---
+            const noisyQubitsContainer = document.getElementById('noisy-qubits-container');
+            const logicalQubitsContainer = document.getElementById('logical-qubits-container');
+            const physicalQubitSlider = document.getElementById('physical-qubit-slider');
+            const physicalQubitCount = document.getElementById('physical-qubit-count');
+            const logicalQubitInfo = document.getElementById('logical-qubit-info');
+            const PHYSICAL_TO_LOGICAL_RATIO = 100; // Highly simplified ratio for visualization
+
+             const updateErrorCorrectionViz = () => {
+                const numPhysical = parseInt(physicalQubitSlider.value);
+                physicalQubitCount.textContent = numPhysical;
+
+                // Update noisy qubits display (show a representative sample)
+                noisyQubitsContainer.innerHTML = '';
+                const noisyToShow = Math.min(numPhysical, 150); // Limit displayed dots for performance
+                for (let i = 0; i < noisyToShow; i++) {
+                    const noisyDot = document.createElement('div');
+                    noisyDot.className = 'noisy-qubit';
+                    // Add slight random delay to flicker animation
+                    noisyDot.style.animationDelay = `${Math.random() * -1.5}s`;
+                    noisyQubitsContainer.appendChild(noisyDot);
+                }
+                 if (noisyToShow < numPhysical) {
+                     const ellipsis = document.createElement('span');
+                     ellipsis.textContent = ' ...';
+                     ellipsis.className = 'text-red-500 font-bold';
+                     noisyQubitsContainer.appendChild(ellipsis);
+                 }
+
+
+                // Update logical qubits display
+                const numLogical = Math.floor(numPhysical / PHYSICAL_TO_LOGICAL_RATIO);
+                logicalQubitsContainer.innerHTML = '';
+                for (let i = 0; i < numLogical; i++) {
+                    const logicalDot = document.createElement('div');
+                    logicalDot.className = 'logical-qubit';
+                    logicalQubitsContainer.appendChild(logicalDot);
+                }
+
+                logicalQubitInfo.textContent = `${numLogical} Logical Qubit${numLogical !== 1 ? 's' : ''} formed (Conceptual ratio: ${PHYSICAL_TO_LOGICAL_RATIO}:1)`;
+            };
+
+            physicalQubitSlider.addEventListener('input', updateErrorCorrectionViz);
+            updateErrorCorrectionViz(); // Initial setup
+
+            // --- Potential Applications ---
+            const appItems = document.querySelectorAll('.app-item');
+            appItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const description = item.querySelector('.app-description');
+                    const allDescriptions = document.querySelectorAll('.app-description');
+
+                    // Close other descriptions
+                    allDescriptions.forEach(desc => {
+                        if (desc !== description) {
+                            desc.classList.remove('visible');
+                        }
+                    });
+
+                    // Toggle clicked description
+                    description.classList.toggle('visible');
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>

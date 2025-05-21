@@ -43,10 +43,13 @@ def main():
         
         html_content = load_html_file(benchmark_html_path)
         
-        if "Error:" not in html_content:
+        # Check if the loaded content starts with the specific error paragraph tag
+        if not html_content.startswith("<p>Error:"):
             components.html(html_content, height=1200, scrolling=True)
         else:
-            st.error(f"Could not load the benchmark application: {html_content}")
+            # Extract the message from the <p> tag for cleaner error display
+            error_message = html_content.replace("<p>Error: ", "").replace("</p>", "")
+            st.error(f"Could not load the benchmark application: {error_message}")
         
         st.sidebar.markdown("--- ")
         st.sidebar.info("The benchmark interface above is an interactive HTML/JS application embedded within Streamlit.")
@@ -67,10 +70,13 @@ def main():
 
         html_content = load_html_file(deep_dive_html_path)
 
-        if "Error:" not in html_content:
+        # Check if the loaded content starts with the specific error paragraph tag
+        if not html_content.startswith("<p>Error:"):
             components.html(html_content, height=800, scrolling=True)
         else:
-            st.error(f"Could not load the Quantum Computing Deep Dive page: {html_content}")
+            # Extract the message from the <p> tag for cleaner error display
+            error_message = html_content.replace("<p>Error: ", "").replace("</p>", "")
+            st.error(f"Could not load the Quantum Computing Deep Dive page: {error_message}")
         
         st.sidebar.markdown("--- ")
         st.sidebar.info("The content above is loaded from an external HTML page detailing quantum computing concepts.")
@@ -99,7 +105,7 @@ if __name__ == "__main__":
                 <div class="container">
                     <h1>Quantum Computing Deep Dive - Placeholder</h1>
                     <p>This is a placeholder for the <code>quantum_computing.html</code> file.</p>
-                    <p>Please replace this file with the actual content from <code>C:\Users\nevel\PycharmProjects\Proof_of_concept\quantheo_poc2\quantheo-website\quantum_computing.html</code> for the full experience.</p>
+                    <p>Please replace this file with the actual content from <code>C:\\\\Users\\\\nevel\\\\PycharmProjects\\\\Proof_of_concept\\\\quantheo_poc2\\\\quantheo-website\\\\quantum_computing.html</code> for the full experience.</p>
                     <p>This page will display detailed information about quantum computing concepts, technologies, and applications.</p>
                 </div>
             </body>
