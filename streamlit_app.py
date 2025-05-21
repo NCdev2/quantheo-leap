@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import os
+import datetime # Added for dynamic year
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -22,64 +23,81 @@ def load_html_file(file_path):
 
 # --- Main Application ---
 def main():
-    st.sidebar.title("Navigation")
+    st.sidebar.header("🚀 Quantheo Leap") # Changed from st.sidebar.title
+    st.sidebar.markdown("---")
     app_mode = st.sidebar.radio(
-        "Choose a section:",
-        ("Quantheo Leap Benchmark", "Quantum Computing Deep Dive")
+        "Explore Sections:", # Changed label
+        ("Quantheo Leap Benchmark", "Quantum Computing Deep Dive"),
+        key="nav_radio" # Added a key
     )
 
     if app_mode == "Quantheo Leap Benchmark":
-        st.title("⚛️ Quantheo Leap - ICT Benchmark Explorer")
         st.markdown("""
-            Welcome to the Quantheo Leap Benchmark Explorer. 
-            Select an ICT problem and complexity level, then run the benchmark to compare 
-            classical and quantum-enhanced solver performance.
-            """)
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #0D9488; font-size: 2.5em;">⚛️ Quantheo Leap - ICT Benchmark Explorer</h1>
+            </div>
+            <p style="font-size: 1.1em;">
+                Step into the future of computation! Select an ICT problem, adjust the complexity, 
+                and witness a real-time performance comparison between classical and quantum-enhanced solvers.
+            </p>
+            <p style="font-size: 1.0em; color: #555;">
+                <em>This interactive tool demonstrates the potential of quantum algorithms in tackling complex challenges.</em>
+            </p>
+            """, unsafe_allow_html=True)
         
-        # Construct the absolute path to the HTML file
-        # IMPORTANT: This path needs to be correct for your Streamlit deployment environment.
-        # If deploying, ensure this file is in the same directory as your Streamlit app script, or adjust the path.
         benchmark_html_path = os.path.join(os.path.dirname(__file__), "main_benchmark_app.html")
         
         html_content = load_html_file(benchmark_html_path)
         
-        # Check if the loaded content starts with the specific error paragraph tag
         if not html_content.startswith("<p>Error:"):
             components.html(html_content, height=1200, scrolling=True)
         else:
-            # Extract the message from the <p> tag for cleaner error display
             error_message = html_content.replace("<p>Error: ", "").replace("</p>", "")
             st.error(f"Could not load the benchmark application: {error_message}")
         
-        st.sidebar.markdown("--- ")
-        st.sidebar.info("The benchmark interface above is an interactive HTML/JS application embedded within Streamlit.")
+        st.sidebar.markdown("---") # Standardized separator
+        st.sidebar.info("""
+            **About this Section:**
+            The benchmark explorer is an interactive HTML/JS application. 
+            It's embedded here to showcase solver comparisons.
+            """)
 
     elif app_mode == "Quantum Computing Deep Dive":
-        st.title("🌌 Quantum Computing Deep Dive")
         st.markdown("""
-            Explore the fundamentals and advancements in quantum computing. 
-            This section provides a comprehensive overview based on the Quantheo website.
-            """)
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #0D9488; font-size: 2.5em;">🌌 Quantum Computing Deep Dive</h1>
+            </div>
+            <p style="font-size: 1.1em;">
+                Embark on a journey through the fascinating world of quantum computing. 
+                Discover the core principles, cutting-edge advancements, and the transformative potential of this revolutionary technology.
+            </p>
+            <p style="font-size: 1.0em; color: #555;">
+                <em>Content sourced and adapted for an immersive learning experience.</em>
+            </p>
+            """, unsafe_allow_html=True)
         
-        # IMPORTANT: This path needs to be correct for your Streamlit deployment environment.
-        # Ensure 'quantum_computing.html' is in the same directory or provide the correct relative/absolute path.
         deep_dive_html_path = os.path.join(os.path.dirname(__file__), "quantum_computing.html")
-        # If your quantum_computing.html is in a different location, adjust this path:
-        # e.g., deep_dive_html_path = "C:\\Users\\nevel\\PycharmProjects\\Proof_of_concept\\quantheo_poc2\\quantheo-website\\quantum_computing.html"
-        # However, for deployment, it's best to keep related files together.
 
         html_content = load_html_file(deep_dive_html_path)
 
-        # Check if the loaded content starts with the specific error paragraph tag
         if not html_content.startswith("<p>Error:"):
-            components.html(html_content, height=800, scrolling=True)
+            components.html(html_content, height=1500, scrolling=True) # Increased height
         else:
-            # Extract the message from the <p> tag for cleaner error display
             error_message = html_content.replace("<p>Error: ", "").replace("</p>", "")
             st.error(f"Could not load the Quantum Computing Deep Dive page: {error_message}")
         
-        st.sidebar.markdown("--- ")
-        st.sidebar.info("The content above is loaded from an external HTML page detailing quantum computing concepts.")
+        st.sidebar.markdown("---") # Standardized separator
+        st.sidebar.info("""
+            **About this Section:**
+            This content is loaded from `quantum_computing.html`.
+            It offers a detailed look into quantum principles and applications.
+            """)
+
+    # Common sidebar footer elements
+    st.sidebar.markdown("---")
+    st.sidebar.success("UI Enhancements Applied!") 
+    st.sidebar.caption(f"Quantheo Leap Platform | © {datetime.date.today().year} Quantheo")
+    st.sidebar.caption("Version 1.1.0")
 
 # --- Entry Point ---
 if __name__ == "__main__":
